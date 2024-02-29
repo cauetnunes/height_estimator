@@ -1,0 +1,46 @@
+<launch>
+  <arg name="n_threads" default="8" />
+  <!-- <arg name="uav_name" default="uav1"/> -->
+  <arg name="uav_name" default="$(env UAV_NAME)"/> 
+
+
+  
+
+  <!-- will it run using GNU debugger? -->
+  <arg name="DEBUG" default="false" />
+  <arg unless="$(arg DEBUG)" name="launch_prefix_debug" value="" />
+  <arg if="$(arg DEBUG)" name="launch_prefix_debug" value="xterm -e gdb --args"/>
+
+  <!-- will it run as standalone nodelet or using a nodelet manager? -->
+  <arg name="standalone" default="true"/>
+  <arg name="manager" default="HeightEstimatorManager"/>
+  <arg unless="$(arg standalone)" name="nodelet" value="load"/>
+  <arg if="$(arg standalone)" name="nodelet" value="standalone"/>
+  <arg unless="$(arg standalone)" name="nodelet_manager" value="$(arg manager)"/>
+  <arg if="$(arg standalone)" name="nodelet_manager" value=""/>
+
+  <group ns="$(arg uav_name)">
+    <!-- Nodelet manager -->
+    <node pkg="nodelet" type="nodelet" name="realsense_nodelet_manager" args="manager" output="screen">
+      <param name="num_worker_threads" value="$(arg n_threads)" />
+    </node>
+
+    <node pkg="nodelet" type="nodelet" name="HeightEstimator" args="$(arg nodelet) laser_uav_estimator/HeightEstimator $(arg nodelet_manager)"
+      launch-prefix="$(arg launch_prefix_debug)" output="screen">
+
+      <!-- parameters -->
+      <rosparam file="$(find laser_uav_estimator)/config/default.yaml" />
+      <rosparam file="$(find laser_uav_estimator)/config/height_estimator.yaml" />
+      
+      
+      <!-- Subscribers -->
+
+      <remap from="~garmin_in" to="/estimation_manager/garmin_agl/agl_height" />
+      <remap from="~camera_in" to="/laser_visual_odometry/height" /> 
+      <remap from="~odom_height_in" to="/mavros/odometry/in" />
+     
+      <!-- Publishers -->
+
+    </node>
+  </group>
+</launch>

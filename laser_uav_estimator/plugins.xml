@@ -1,0 +1,5 @@
+<library path="lib/libHeightEstimator">
+  <class name="laser_uav_estimator/HeightEstimator" type="laser_uav_estimator::HeightEstimator" base_class_type="nodelet::Nodelet">
+    <description>HeightEstimator nodelet</description>
+  </class>
+</library>
